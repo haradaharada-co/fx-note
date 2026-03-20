@@ -184,6 +184,73 @@
     .logo{font-size:12px}
     header{align-items:flex-start}
   }
+
+
+.image-modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.84);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:360;
+}
+.image-modal-backdrop.show{display:flex}
+.image-modal-card{
+  width:min(100%,900px);
+  max-height:100%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.image-modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  color:var(--text);
+}
+.image-modal-title{
+  font-size:12px;
+  color:var(--muted);
+}
+.image-modal-close{
+  width:auto;
+  padding:10px 12px;
+  font-size:12px;
+  border-radius:10px;
+  border:none;
+  background:var(--surface2);
+  color:var(--text);
+  cursor:pointer;
+}
+.image-modal-img{
+  max-width:100%;
+  max-height:calc(100vh - 120px);
+  object-fit:contain;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#000;
+  display:block;
+  margin:0 auto;
+}
+
+/* ── メモ全画面展開 ── */
+.memo-expand-overlay{position:fixed;inset:0;background:#0d1117;z-index:9998;display:none}
+.memo-expanded{
+  position:fixed !important;
+  top:16px !important; left:16px !important; right:16px !important; bottom:16px !important;
+  width:auto !important; height:auto !important; min-height:0 !important;
+  z-index:9999 !important; font-size:16px !important; padding-top:56px !important; resize:none !important;
+  border-color:var(--accent) !important;
+}
+.memo-close-btn{
+  position:fixed; top:24px; right:24px; z-index:10000; display:none;
+  width:auto; padding:10px 16px; background:var(--red); color:#fff;
+  border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer;
+}
+
 </style>
 </head>
 <body>
@@ -375,8 +442,8 @@
         </button>
         <div class="optional-body">
           <div class="row"><label>ルール遵守</label><div class="seg" id="seg_t_ruleFollowed"><button data-val="true" class="active">✓ 遵守した</button><button data-val="false">✗ 違反あり</button></div></div>
-          <div class="row"><label>メモ（気づき・反省）</label><textarea id="t_memo" placeholder="なぜここでエントリーしたか、次に活かすことなど…"></textarea></div>
-          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="t_image" accept="image/*" /><div class="image-preview" id="t_imagePreview"><img id="t_imagePreviewImg" alt="trade preview" /><div class="image-meta"><span id="t_imageMeta">未選択</span><button type="button" class="btn btn-ghost btn-mini" id="t_imageClearBtn">画像を外す</button></div></div></div></div>
+          <div class="row"><label>メモ（気づき・反省）</label><textarea id="t_memo" placeholder="なぜここでエントリーしたか、次に活かすことなど… タップで全画面編集"></textarea></div>
+          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="t_image" accept="image/*" /><div class="image-preview" id="t_imagePreview"><img id="t_imagePreviewImg" alt="trade preview" data-zoomable="true" data-zoom-title="実トレード画像" /><div class="image-meta"><span id="t_imageMeta">未選択</span><button type="button" class="btn btn-ghost btn-mini" id="t_imageClearBtn">画像を外す</button></div></div></div></div>
         </div>
       </div>
     </div>
@@ -416,6 +483,10 @@
       <div><label>日付</label><input type="date" id="s_date" /></div>
       <div><label>通貨</label><select id="s_symbol"><option value="USDJPY">USDJPY</option><option value="EURJPY">EURJPY</option><option value="GBPJPY">GBPJPY</option><option value="AUDJPY">AUDJPY</option></select></div>
     </div>
+    <div class="row row2">
+      <div><label>相場構造</label><select id="s_marketStructure"><option value="up">上昇トレンド</option><option value="down">下降トレンド</option><option value="range">レンジ</option></select></div>
+      <div><label>優位足</label><select id="s_contextTf"><option value="D1">日足</option><option value="H4" selected>4時間足</option><option value="H1">1時間足</option><option value="M15">15分足</option></select></div>
+    </div>
     <div class="row"><label>ライン価格（主）</label><input type="number" id="s_linePrice" step="0.001" placeholder="例: 160.00" /></div>
     <div class="row"><label>ゾーン（From → To）</label><div style="display:flex;gap:8px"><input type="number" id="s_zoneFrom" step="0.001" placeholder="159.90" /><div style="line-height:40px;color:var(--muted);flex-shrink:0">〜</div><input type="number" id="s_zoneTo" step="0.001" placeholder="160.10" /></div></div>
     <div class="row"><label>ライン種類①（必須）</label><select id="s_lineType"><option value="swing">スイング高値・安値</option><option value="round">ラウンドナンバー</option><option value="multi">複数回反発</option><option value="sr">サポレジ転換</option></select></div>
@@ -435,9 +506,9 @@
               <label style="margin-bottom:0;">メモ（気づき）</label>
               <button type="button" class="btn btn-ghost btn-mini" id="s_insertTemplateBtn" style="margin-top:0;">テンプレ挿入</button>
             </div>
-            <textarea id="s_memo" placeholder="なぜ反発した？突破した理由は？次に活かすこと…"></textarea>
+            <textarea id="s_memo" placeholder="なぜ反発した？突破した理由は？次に活かすこと… タップで全画面編集"></textarea>
           </div>
-          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="s_image" accept="image/*" /><div class="image-preview" id="s_imagePreview"><img id="s_imagePreviewImg" alt="study preview" /><div class="image-meta"><span id="s_imageMeta">未選択</span><button type="button" class="btn btn-ghost btn-mini" id="s_imageClearBtn">画像を外す</button></div></div></div></div>
+          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="s_image" accept="image/*" /><div class="image-preview" id="s_imagePreview"><img id="s_imagePreviewImg" alt="study preview" data-zoomable="true" data-zoom-title="ライン研究画像" /><div class="image-meta"><span id="s_imageMeta">未選択</span><button type="button" class="btn btn-ghost btn-mini" id="s_imageClearBtn">画像を外す</button></div></div></div></div>
         </div>
       </div>
     </div>
@@ -610,6 +681,39 @@ const STUDY_MEMO_TEMPLATE = `■ トレンド
 
 ■ 気づき
 ・`;
+const STUDY_TEMPLATE_LOCK_ENABLED = true;
+
+function normalizeLineBreaks(text){
+  return String(text || "").replace(/\r\n/g, "\n");
+}
+function getStudyTemplate(){
+  return normalizeLineBreaks(STUDY_MEMO_TEMPLATE);
+}
+function studyMemoStartsWithTemplate(value){
+  return normalizeLineBreaks(value).startsWith(getStudyTemplate());
+}
+function insertStudyTemplate(force=false){
+  const memo = qs("s_memo");
+  if(!memo) return;
+  const template = getStudyTemplate();
+  const current = normalizeLineBreaks(memo.value || "");
+  if(!force && current && current !== template) return;
+  memo.value = template;
+}
+function protectStudyTemplate(){
+  const memo = qs("s_memo");
+  if(!memo || !STUDY_TEMPLATE_LOCK_ENABLED) return;
+  const template = getStudyTemplate();
+  const current = normalizeLineBreaks(memo.value || "");
+  if(current === ""){
+    memo.value = template;
+    return;
+  }
+  if(!current.startsWith(template)){
+    const safeTail = current.length > template.length ? current.slice(template.length) : "";
+    memo.value = template + safeTail;
+  }
+}
 
 let pendingTradeImage = null;
 let pendingStudyImage = null;
@@ -1045,7 +1149,7 @@ function historyFilterBase(item){
   const q=(qs("historySearch")?.value||"").trim().toLowerCase();
   const symbol=qs("historySymbolFilter")?.value||"all";
   const result=qs("historyResultFilter")?.value||"all";
-  const bag=[item.symbol,item.memo,item.entryType,item.direction,item.trend,item.lineType,item.lineType2,item.lineType3].join(" ").toLowerCase();
+  const bag=[item.symbol,item.memo,item.entryType,item.direction,item.trend,item.lineType,item.lineType2,item.lineType3,item.marketStructure,item.contextTf].join(" ").toLowerCase();
   if(q && !bag.includes(q)) return false;
   if(symbol!=="all" && item.symbol!==symbol) return false;
   if(result!=="all" && item.result!==result) return false;
@@ -1087,7 +1191,7 @@ function renderTradeHistory(){
         <span style="font-size:11px;color:${t.ruleFollowed?"var(--green)":"var(--red)"};">${t.ruleFollowed?"✓ルール遵守":"✗ルール違反"}</span>
       </div>
       ${t.memo?`<div class="memo">💭 ${t.memo}</div>`:""}
-      ${getRecordImageSrc(t)?`<div class="history-shot"><img src="${getRecordImageSrc(t)}" alt="trade image" /></div>`:""}
+      ${getRecordImageSrc(t)?`<div class="history-shot"><img src="${getRecordImageSrc(t)}" alt="trade image" data-zoomable="true" data-zoom-title="実トレード履歴画像" /></div>`:""}
     `;
     box.appendChild(div);
   });
@@ -1116,13 +1220,17 @@ function renderStudyHistory(){
         <span>📍 ${s.linePrice}</span>
         ${s.zoneFrom!=null&&s.zoneTo!=null?`<span>ゾーン: ${s.zoneFrom}〜${s.zoneTo}</span>`:""}
       </div>
+      <div class="meta">
+        <span>構造: ${s.marketStructure==="up"?"上昇トレンド":s.marketStructure==="down"?"下降トレンド":"レンジ"}</span>
+        <span>優位足: ${s.contextTf||"H4"}</span>
+      </div>
       <div style="margin-bottom:6px;">${tags.map(t=>`<span class="rule-tag purple">${lineLabels[t]}</span>`).join("")}</div>
       <div class="meta">
         <span>${s.strength==="strong"?"⭐ 強いゾーン":s.strength==="weak"?"△ 弱い":"○ 普通"}</span>
         ${s.wicks?`<span style="color:var(--purple);">〜 長いヒゲあり</span>`:""}
       </div>
       ${s.memo?`<div class="memo">💭 ${s.memo}</div>`:""}
-      ${getRecordImageSrc(s)?`<div class="history-shot"><img src="${getRecordImageSrc(s)}" alt="study image" /></div>`:""}
+      ${getRecordImageSrc(s)?`<div class="history-shot"><img src="${getRecordImageSrc(s)}" alt="study image" data-zoomable="true" data-zoom-title="ライン研究履歴画像" /></div>`:""}
     `;
     box.appendChild(div);
   });
@@ -1186,9 +1294,23 @@ async function saveStudy(){
   const linePrice=toNum(qs("s_linePrice").value); if(linePrice==null){ alert("ライン価格を入力してください"); return; }
   const imageId=await persistPendingImage("study", pendingStudyImage);
   const study={
-    id:Date.now(), num:studies.length+1, date:qs("s_date").value, symbol:qs("s_symbol").value, linePrice, lineType:qs("s_lineType").value,
-    lineType2:qs("s_lineType2").value, lineType3:qs("s_lineType3").value, zoneFrom:toNum(qs("s_zoneFrom").value), zoneTo:toNum(qs("s_zoneTo").value),
-    result:studyState.result, strength:studyState.strength, wicks:studyState.wicks, memo:qs("s_memo").value.trim(), imageId
+    id:Date.now(),
+    num:studies.length+1,
+    date:qs("s_date").value,
+    symbol:qs("s_symbol").value,
+    marketStructure:qs("s_marketStructure").value,
+    contextTf:qs("s_contextTf").value,
+    linePrice,
+    lineType:qs("s_lineType").value,
+    lineType2:qs("s_lineType2").value,
+    lineType3:qs("s_lineType3").value,
+    zoneFrom:toNum(qs("s_zoneFrom").value),
+    zoneTo:toNum(qs("s_zoneTo").value),
+    result:studyState.result,
+    strength:studyState.strength,
+    wicks:studyState.wicks,
+    memo:qs("s_memo").value.trim(),
+    imageId
   };
   studies.push(study); saveStorage(); clearStudyForm(); await refreshImageCache(true); renderAll(); openPage("dashboard");
 }
@@ -1197,64 +1319,15 @@ function clearTradeForm(){
   qs("t_date").value=todayStr(); applyTradeDraft(); qs("t_zonePrice").value=""; qs("t_entryPrice").value=""; qs("t_slPrice").value="";
   qs("t_tpPrice").value=""; qs("t_spread").value=""; qs("t_memo").value=""; clearAttachedImage("t"); updateTradeCalcPreview();
 }
-function insertStudyTemplate(force=false){
-  const memo=qs("s_memo");
-  if(!memo) return;
-  const current=memo.value || "";
-  if(!force && current.trim() && current.startsWith(STUDY_MEMO_TEMPLATE)) return;
-  if(force || !current.trim()){
-    memo.value=STUDY_MEMO_TEMPLATE;
-  }else if(!current.startsWith(STUDY_MEMO_TEMPLATE)){
-    memo.value=STUDY_MEMO_TEMPLATE + "\n" + current.trimStart();
-  }
-  requestAnimationFrame(()=>{
-    const pos=Math.max(STUDY_MEMO_TEMPLATE.length, memo.value.length);
-    memo.setSelectionRange(pos,pos);
-  });
-}
-
-function bindStudyMemoTemplateGuard(){
-  const memo=qs("s_memo");
-  if(!memo) return;
-  const lockCaret=()=>{
-    const min=STUDY_MEMO_TEMPLATE.length;
-    if((memo.selectionStart ?? 0) < min || (memo.selectionEnd ?? 0) < min){
-      memo.setSelectionRange(min,min);
-    }
-  };
-  memo.addEventListener("focus",()=>{
-    if(!memo.value.trim()) insertStudyTemplate(true);
-    setTimeout(lockCaret,0);
-  });
-  memo.addEventListener("click",()=>setTimeout(lockCaret,0));
-  memo.addEventListener("keyup",()=>setTimeout(lockCaret,0));
-  memo.addEventListener("beforeinput",(e)=>{
-    const min=STUDY_MEMO_TEMPLATE.length;
-    const start=memo.selectionStart ?? 0;
-    const end=memo.selectionEnd ?? 0;
-    const touchesTemplate = start < min || end < min;
-    if(!touchesTemplate) return;
-    const protectedTypes = [
-      "deleteContentBackward","deleteContentForward","deleteByCut",
-      "insertText","insertFromPaste","insertParagraph","insertLineBreak",
-      "insertCompositionText","historyUndo","historyRedo"
-    ];
-    if(protectedTypes.includes(e.inputType)){
-      e.preventDefault();
-      memo.setSelectionRange(min,min);
-    }
-  });
-  memo.addEventListener("input",()=>{
-    if(!memo.value.startsWith(STUDY_MEMO_TEMPLATE)){
-      const userPart = memo.value.replace(STUDY_MEMO_TEMPLATE,"").trimStart();
-      memo.value = STUDY_MEMO_TEMPLATE + (userPart ? "\n" + userPart : "");
-    }
-    setTimeout(lockCaret,0);
-  });
-}
-
 function clearStudyForm(){
-  qs("s_date").value=todayStr(); qs("s_symbol").value="USDJPY"; qs("s_linePrice").value=""; qs("s_zoneFrom").value=""; qs("s_zoneTo").value=""; qs("s_memo").value=""; clearAttachedImage("s");
+  qs("s_date").value=todayStr();
+  qs("s_symbol").value="USDJPY";
+  if(qs("s_marketStructure")) qs("s_marketStructure").value="up";
+  if(qs("s_contextTf")) qs("s_contextTf").value="H4";
+  qs("s_linePrice").value="";
+  qs("s_zoneFrom").value="";
+  qs("s_zoneTo").value="";
+  clearAttachedImage("s");
   insertStudyTemplate(true);
   const wrap=qs("studyOptionalWrap"); if(wrap) wrap.classList.add("open");
   if(qs("studyStepper")) setStep("study",2,1);
@@ -1311,14 +1384,14 @@ async function buildBackupPayload(includeImages){
 async function exportJSON(includeImages=true){
   const data=await buildBackupPayload(includeImages);
   const suffix=includeImages?"images":"lite";
-  downloadFile(`sen-fx-backup-v8-${suffix}.json`, JSON.stringify(data,null,2), "application/json");
+  downloadFile(`sen-fx-backup-v10.5.1-${suffix}.json`, JSON.stringify(data,null,2), "application/json");
 }
 function exportCSV(){
-  const headers=["type","num","date","symbol","time","direction","trend","entryType","lineType","lineType2","lineType3","entryPrice","slPrice","tpPrice","slPips","tpPips","result","rMultiple","pnl","strength","wicks","memo"];
-  const tradeRows=trades.map(t=>["trade",t.num,t.date,t.symbol||"",t.time||"",t.direction||"",t.trend||"",t.entryType||"",t.lineType||"","","",t.entryPrice??"",t.slPrice??"",t.tpPrice??"",t.slPips??"",t.tpPips??"",t.result||"",t.rMultiple??"",t.pnl??"","","",(t.memo||"").replace(/\n/g," ")]);
-  const studyRows=studies.map(s=>["study",s.num,s.date,s.symbol||"","","","","",s.lineType||"",s.lineType2||"",s.lineType3||"","","","","","",s.result||"","","",s.strength||"",s.wicks?"true":"false",(s.memo||"").replace(/\n/g," ")]);
+  const headers=["type","num","date","symbol","time","direction","trend","entryType","lineType","lineType2","lineType3","entryPrice","slPrice","tpPrice","slPips","tpPips","result","rMultiple","pnl","strength","wicks","marketStructure","contextTf","memo"];
+  const tradeRows=trades.map(t=>["trade",t.num,t.date,t.symbol||"",t.time||"",t.direction||"",t.trend||"",t.entryType||"",t.lineType||"","","",t.entryPrice??"",t.slPrice??"",t.tpPrice??"",t.slPips??"",t.tpPips??"",t.result||"",t.rMultiple??"",t.pnl??"","","","",(t.memo||"").replace(/\n/g," ")]);
+  const studyRows=studies.map(s=>["study",s.num,s.date,s.symbol||"","","","","",s.lineType||"",s.lineType2||"",s.lineType3||"","","","","","",s.result||"","","",s.strength||"",s.wicks?"true":"false",s.marketStructure||"",s.contextTf||"",(s.memo||"").replace(/\n/g," ")]);
   const csv=[headers.join(","), ...tradeRows.concat(studyRows).map(r=>r.map(csvEscape).join(","))].join("\n");
-  downloadFile("sen-fx-complete-v8.csv", csv, "text/csv;charset=utf-8;");
+  downloadFile("sen-fx-complete-v10.5.1.csv", csv, "text/csv;charset=utf-8;");
 }
 function csvEscape(v){ const s=String(v??""); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
 function downloadFile(name, content, type){
@@ -1535,7 +1608,6 @@ function saveSettings(){
   saveStorage();
   applySettingsToUI();
   updateTradeCalcPreview();
-  insertStudyTemplate();
   renderAll();
   alert("設定を保存しました");
 }
@@ -1594,6 +1666,58 @@ function bindFixedActionBars(){
   }
 }
 
+
+function openImageModal(src,title="画像プレビュー"){
+  const modal=qs("imageModal"),img=qs("imageModalImg"),titleEl=qs("imageModalTitle");
+  if(!modal||!img||!titleEl||!src) return;
+  img.src=src; titleEl.textContent=title;
+  modal.classList.add("show"); modal.setAttribute("aria-hidden","false");
+}
+function closeImageModal(){
+  const modal=qs("imageModal"),img=qs("imageModalImg"); if(!modal||!img) return;
+  modal.classList.remove("show"); modal.setAttribute("aria-hidden","true");
+  setTimeout(()=>img.removeAttribute("src"),120);
+}
+function bindImageZoom(){
+  document.addEventListener("click",(e)=>{
+    const target=e.target.closest("img[data-zoomable='true']");
+    if(!target) return;
+    openImageModal(target.getAttribute("src"), target.dataset.zoomTitle||"画像プレビュー");
+  });
+  const closeBtn=qs("imageModalCloseBtn"),modal=qs("imageModal");
+  if(closeBtn) closeBtn.addEventListener("click",closeImageModal);
+  if(modal) modal.addEventListener("click",(e)=>{ if(e.target===modal) closeImageModal(); });
+  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeImageModal(); });
+}
+
+function bindMemoExpand(){
+  const overlay=qs("memoOverlay"),closeBtn=qs("memoCloseBtn");
+  let activeMemo=null;
+  function openMemo(memo){
+    if(!memo || activeMemo===memo) return;
+    activeMemo=memo;
+    memo.classList.add("memo-expanded");
+    if(closeBtn) closeBtn.style.display="block";
+    if(overlay) overlay.style.display="block";
+    document.body.style.overflow="hidden";
+  }
+  function closeMemo(){
+    if(activeMemo){ activeMemo.classList.remove("memo-expanded"); activeMemo.blur(); }
+    activeMemo=null;
+    if(closeBtn) closeBtn.style.display="none";
+    if(overlay) overlay.style.display="none";
+    document.body.style.overflow="";
+  }
+  ["t_memo","s_memo"].forEach(id=>{
+    const memo=qs(id);
+    if(!memo) return;
+    memo.addEventListener("focus",()=>openMemo(memo));
+  });
+  if(closeBtn) closeBtn.addEventListener("click",closeMemo);
+  if(overlay) overlay.addEventListener("click",closeMemo);
+  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&activeMemo) closeMemo(); });
+}
+
 function bindInputs(){
   ["t_entryPrice","t_slPrice","t_tpPrice","t_spread"].forEach(id=>qs(id).addEventListener("input",updateTradeCalcPreview));
   qs("t_symbol").addEventListener("change",()=>{ saveTradeDraft(); updateTradeSuggestions(); });
@@ -1605,13 +1729,33 @@ function bindInputs(){
   qs("t_clearBtn").addEventListener("click",clearTradeForm);
   qs("s_saveBtn").addEventListener("click",saveStudy);
   qs("s_clearBtn").addEventListener("click",clearStudyForm);
-  if(qs("s_insertTemplateBtn")) qs("s_insertTemplateBtn").addEventListener("click",()=>insertStudyTemplate(true));
-  bindStudyMemoTemplateGuard();
 
   if(qs("t_image")) qs("t_image").addEventListener("change",e=>handleImageInput("t", e.target.files[0]));
   if(qs("s_image")) qs("s_image").addEventListener("change",e=>handleImageInput("s", e.target.files[0]));
+  if(qs("s_insertTemplateBtn")) qs("s_insertTemplateBtn").addEventListener("click",()=>insertStudyTemplate(true));
   if(qs("t_imageClearBtn")) qs("t_imageClearBtn").addEventListener("click",()=>clearAttachedImage("t"));
   if(qs("s_imageClearBtn")) qs("s_imageClearBtn").addEventListener("click",()=>clearAttachedImage("s"));
+
+  if(qs("s_memo")){
+    qs("s_memo").addEventListener("input", protectStudyTemplate);
+    qs("s_memo").addEventListener("keydown",(e)=>{
+      if(!STUDY_TEMPLATE_LOCK_ENABLED) return;
+      const memo=e.target;
+      const template=getStudyTemplate();
+      const start=memo.selectionStart, end=memo.selectionEnd;
+      if(start==null || end==null) return;
+      const protectedLength=template.length;
+      const isDelete=(e.key==="Backspace" || e.key==="Delete");
+      const isCut=(e.key.toLowerCase()==="x" && (e.ctrlKey || e.metaKey));
+      if((isDelete || isCut) && (start < protectedLength || end < protectedLength)){
+        e.preventDefault();
+      }
+    });
+    qs("s_memo").addEventListener("paste",(e)=>{
+      const memo=e.target, template=getStudyTemplate(), start=memo.selectionStart;
+      if(start != null && start < template.length) e.preventDefault();
+    });
+  }
 
   qs("exportJsonBtn").addEventListener("click",()=>exportJSON(true));
   qs("exportJsonLiteBtn").addEventListener("click",()=>exportJSON(false));
@@ -1638,7 +1782,9 @@ function bindInputs(){
 }
 
 async function init(){
-  setDefaults(); applySettingsToUI(); bindTabs(); bindHistoryToggle(); bindAccordions(); bindInputs(); bindFormToggles(); bindFixedActionBars();
+  setDefaults(); applySettingsToUI(); bindTabs(); bindHistoryToggle(); bindAccordions(); bindInputs(); bindFormToggles(); bindFixedActionBars(); bindImageZoom(); bindMemoExpand();
+  insertStudyTemplate(true);
+  protectStudyTemplate();
   bindSeg("seg_t_time",tradeState,"time");
   bindSeg("seg_t_direction",tradeState,"direction");
   bindSeg("seg_t_trend",tradeState,"trend");
@@ -1657,5 +1803,19 @@ init().catch(err=>{
   alert("初期化中に一部エラーが出ました。画像機能が不安定な場合は再読み込みしてください。");
 });
 </script>
+
+<div class="image-modal-backdrop" id="imageModal" aria-hidden="true">
+  <div class="image-modal-card">
+    <div class="image-modal-head">
+      <div class="image-modal-title" id="imageModalTitle">画像プレビュー</div>
+      <button class="image-modal-close" id="imageModalCloseBtn" type="button">閉じる</button>
+    </div>
+    <img class="image-modal-img" id="imageModalImg" alt="expanded preview" />
+  </div>
+</div>
+
+<div id="memoOverlay" class="memo-expand-overlay"></div>
+<button id="memoCloseBtn" class="memo-close-btn" type="button">✕ 閉じる</button>
+
 </body>
 </html>
