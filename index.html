@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>せん式 FX研究ノート 完成版 v10</title>
+<title>せん式 FX研究ノート 完成版 v10.6.3</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
   :root{
@@ -151,10 +151,19 @@
   .image-upload{display:flex;flex-direction:column;gap:8px}
   .image-preview{display:none;background:var(--surface2);border:1px dashed var(--border);border-radius:8px;padding:10px}
   .image-preview.show{display:block}
-  .image-preview img{width:100%;max-height:220px;object-fit:cover;border-radius:8px;border:1px solid var(--border);display:block}
+  .image-preview img{width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:1px solid var(--border);display:block;background:rgba(255,255,255,.02);cursor:zoom-in}
   .image-meta{font-size:11px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
   .history-shot{margin-top:10px}
-  .history-shot img{width:100%;border-radius:8px;border:1px solid var(--border);display:block}
+  .history-shot img{width:100%;max-height:180px;object-fit:contain;border-radius:8px;border:1px solid var(--border);display:block;background:rgba(255,255,255,.02);cursor:zoom-in}
+  .history-shot small{display:block;color:var(--muted2);font-size:10px;margin-top:4px}
+  .preview-zoom-hint{font-size:10px;color:var(--muted2)}
+  .image-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.84);display:none;align-items:center;justify-content:center;padding:18px;z-index:360}
+  .image-modal-backdrop.show{display:flex}
+  .image-modal-card{width:min(100%,900px);max-height:100%;display:flex;flex-direction:column;gap:10px}
+  .image-modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--text)}
+  .image-modal-title{font-size:12px;color:var(--muted)}
+  .image-modal-close{width:auto;padding:10px 12px;font-size:12px;border-radius:10px;border:none;background:var(--surface2);color:var(--text);cursor:pointer}
+  .image-modal-img{max-width:100%;max-height:calc(100vh - 120px);object-fit:contain;border-radius:12px;border:1px solid var(--border);background:#000;display:block;margin:0 auto}
     .stepper{display:flex;align-items:center;gap:8px;margin:0 0 14px;overflow-x:auto;padding-bottom:2px}
   .step-chip{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:12px;white-space:nowrap}
   .step-chip .num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);font-family:'Space Mono',monospace;font-size:11px}
@@ -184,57 +193,6 @@
     .logo{font-size:12px}
     header{align-items:flex-start}
   }
-
-
-.image-modal-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.84);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-  z-index:360;
-}
-.image-modal-backdrop.show{display:flex}
-.image-modal-card{
-  width:min(100%,900px);
-  max-height:100%;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.image-modal-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  color:var(--text);
-}
-.image-modal-title{
-  font-size:12px;
-  color:var(--muted);
-}
-.image-modal-close{
-  width:auto;
-  padding:10px 12px;
-  font-size:12px;
-  border-radius:10px;
-  border:none;
-  background:var(--surface2);
-  color:var(--text);
-  cursor:pointer;
-}
-.image-modal-img{
-  max-width:100%;
-  max-height:calc(100vh - 120px);
-  object-fit:contain;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:#000;
-  display:block;
-  margin:0 auto;
-}
 
 /* ── メモ全画面展開 ── */
 .memo-expand-overlay{position:fixed;inset:0;background:#0d1117;z-index:9998;display:none}
@@ -443,7 +401,7 @@
         <div class="optional-body">
           <div class="row"><label>ルール遵守</label><div class="seg" id="seg_t_ruleFollowed"><button data-val="true" class="active">✓ 遵守した</button><button data-val="false">✗ 違反あり</button></div></div>
           <div class="row"><label>メモ（気づき・反省）</label><textarea id="t_memo" placeholder="なぜここでエントリーしたか、次に活かすことなど… タップで全画面編集"></textarea></div>
-          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="t_image" accept="image/*" /><div class="image-preview" id="t_imagePreview"><img id="t_imagePreviewImg" alt="trade preview" data-zoomable="true" data-zoom-title="実トレード画像" /><div class="image-meta"><span id="t_imageMeta">未選択</span><button type="button" class="btn btn-ghost btn-mini" id="t_imageClearBtn">画像を外す</button></div></div></div></div>
+          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="t_image" accept="image/*" /><div class="image-preview" id="t_imagePreview"><img id="t_imagePreviewImg" alt="trade preview" data-zoomable="true" data-zoom-title="実トレード画像" /><div class="image-meta"><span id="t_imageMeta">未選択</span><span class="preview-zoom-hint">タップで拡大</span><button type="button" class="btn btn-ghost btn-mini" id="t_imageClearBtn">画像を外す</button></div></div></div></div>
         </div>
       </div>
     </div>
@@ -506,9 +464,9 @@
               <label style="margin-bottom:0;">メモ（気づき）</label>
               <button type="button" class="btn btn-ghost btn-mini" id="s_insertTemplateBtn" style="margin-top:0;">テンプレ挿入</button>
             </div>
-            <textarea id="s_memo" placeholder="なぜ反発した？突破した理由は？次に活かすこと… タップで全画面編集"></textarea>
+            <textarea id="s_memo" placeholder="なぜ反発した？突破した理由は？次に活かすこと…"></textarea>
           </div>
-          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="s_image" accept="image/*" /><div class="image-preview" id="s_imagePreview"><img id="s_imagePreviewImg" alt="study preview" data-zoomable="true" data-zoom-title="ライン研究画像" /><div class="image-meta"><span id="s_imageMeta">未選択</span><button type="button" class="btn btn-ghost btn-mini" id="s_imageClearBtn">画像を外す</button></div></div></div></div>
+          <div class="row"><label>画像（任意）</label><div class="image-upload"><input type="file" id="s_image" accept="image/*" /><div class="image-preview" id="s_imagePreview"><img id="s_imagePreviewImg" alt="study preview" data-zoomable="true" data-zoom-title="ライン研究画像" /><div class="image-meta"><span id="s_imageMeta">未選択</span><span class="preview-zoom-hint">タップで拡大</span><button type="button" class="btn btn-ghost btn-mini" id="s_imageClearBtn">画像を外す</button></div></div></div></div>
         </div>
       </div>
     </div>
@@ -602,6 +560,16 @@
   <div class="accordion"><button class="accordion-btn">🎯 実験目的 <span>▼</span></button><div class="accordion-body"><p>1. ルールを守れるか確認</p><p>2. 押し目とブレイクの反応を観察</p><p>3. 100回のデータを集める</p><br><p style="color:var(--accent);font-weight:500">トレードは「未来予測」ではなく「確率実験」</p></div></div>
 </div>
 
+<div class="image-modal-backdrop" id="imageModal" aria-hidden="true">
+  <div class="image-modal-card">
+    <div class="image-modal-head">
+      <div class="image-modal-title" id="imageModalTitle">画像プレビュー</div>
+      <button class="image-modal-close" id="imageModalCloseBtn" type="button">閉じる</button>
+    </div>
+    <img class="image-modal-img" id="imageModalImg" alt="expanded preview" />
+  </div>
+</div>
+
 <div class="modal-backdrop" id="deleteModal" aria-hidden="true">
   <div class="modal-card">
     <div class="modal-title">削除確認</div>
@@ -622,8 +590,8 @@ const TRADE_KEY = "senFxTrades_html_complete_v4";
 const STUDY_KEY = "senFxStudy_html_complete_v4";
 const SETTINGS_KEY = "senFxSettings_html_complete_v1";
 const TRADE_DRAFT_KEY = "senFxTradeDraft_ui_v1";
-const APP_VERSION = "complete-v10.1-schemafix";
-const BACKUP_SCHEMA_VERSION = 10;
+const APP_VERSION = "complete-v10.6.3-debugged";
+const BACKUP_SCHEMA_VERSION = 11;
 
 let trades = JSON.parse(localStorage.getItem(TRADE_KEY) || localStorage.getItem("senFxTrades_html_v3") || "[]");
 let studies = JSON.parse(localStorage.getItem(STUDY_KEY) || localStorage.getItem("senFxStudy_html_v3") || "[]");
@@ -643,7 +611,7 @@ let settings = { ...defaultSettings, ...(JSON.parse(localStorage.getItem(SETTING
 let tradeDraft = { symbol:"USDJPY", lot:settings.defaultLot, time:"night" , ...(JSON.parse(localStorage.getItem(TRADE_DRAFT_KEY) || "{}") || {}) };
 
 let tradeState = { time:tradeDraft.time||"night", direction:"buy", trend:"up", entryType:"押し目", result:"win", ruleFollowed:true };
-let studyState = { strength:"normal", wicks:false, result:"bounce" };
+let studyState = { strength:"normal", wicks:false, result:"bounce", marketStructure:"up", contextTf:"H4" };
 const STUDY_MEMO_TEMPLATE = `■ トレンド
 （上昇 / 下降 / レンジ）
 
@@ -705,13 +673,9 @@ function protectStudyTemplate(){
   if(!memo || !STUDY_TEMPLATE_LOCK_ENABLED) return;
   const template = getStudyTemplate();
   const current = normalizeLineBreaks(memo.value || "");
+
   if(current === ""){
     memo.value = template;
-    return;
-  }
-  if(!current.startsWith(template)){
-    const safeTail = current.length > template.length ? current.slice(template.length) : "";
-    memo.value = template + safeTail;
   }
 }
 
@@ -1191,7 +1155,7 @@ function renderTradeHistory(){
         <span style="font-size:11px;color:${t.ruleFollowed?"var(--green)":"var(--red)"};">${t.ruleFollowed?"✓ルール遵守":"✗ルール違反"}</span>
       </div>
       ${t.memo?`<div class="memo">💭 ${t.memo}</div>`:""}
-      ${getRecordImageSrc(t)?`<div class="history-shot"><img src="${getRecordImageSrc(t)}" alt="trade image" data-zoomable="true" data-zoom-title="実トレード履歴画像" /></div>`:""}
+      ${getRecordImageSrc(t)?`<div class="history-shot"><img src="${getRecordImageSrc(t)}" alt="trade image" data-zoomable="true" data-zoom-title="実トレード履歴画像" data-zoom-title="実トレード #${t.num}" /><small>タップで拡大</small></div>`:""}
     `;
     box.appendChild(div);
   });
@@ -1222,7 +1186,7 @@ function renderStudyHistory(){
       </div>
       <div class="meta">
         <span>構造: ${s.marketStructure==="up"?"上昇トレンド":s.marketStructure==="down"?"下降トレンド":"レンジ"}</span>
-        <span>優位足: ${s.contextTf||"H4"}</span>
+        <span>優位足: ${s.contextTf || "H4"}</span>
       </div>
       <div style="margin-bottom:6px;">${tags.map(t=>`<span class="rule-tag purple">${lineLabels[t]}</span>`).join("")}</div>
       <div class="meta">
@@ -1230,7 +1194,7 @@ function renderStudyHistory(){
         ${s.wicks?`<span style="color:var(--purple);">〜 長いヒゲあり</span>`:""}
       </div>
       ${s.memo?`<div class="memo">💭 ${s.memo}</div>`:""}
-      ${getRecordImageSrc(s)?`<div class="history-shot"><img src="${getRecordImageSrc(s)}" alt="study image" data-zoomable="true" data-zoom-title="ライン研究履歴画像" /></div>`:""}
+      ${getRecordImageSrc(s)?`<div class="history-shot"><img src="${getRecordImageSrc(s)}" alt="study image" data-zoomable="true" data-zoom-title="ライン研究履歴画像" data-zoom-title="ライン研究 #${s.num}" /><small>タップで拡大</small></div>`:""}
     `;
     box.appendChild(div);
   });
@@ -1287,19 +1251,23 @@ async function saveTrade(){
     entryType:tradeState.entryType, lineType:qs("t_lineType").value, zonePrice, entryPrice, slPrice, tpPrice, lot, spread, slPips, tpPips,
     result:tradeState.result, resultPips, rMultiple, ruleFollowed:tradeState.ruleFollowed, memo:qs("t_memo").value.trim(), imageId, pnl
   };
-  trades.push(trade); saveStorage(); clearTradeForm(); await refreshImageCache(true); renderAll(); openPage("dashboard");
+  trades.push(trade); saveStorage(); clearTradeForm(); await refreshImageCache(true); renderAll();
+  const tMemo = qs("t_memo"); if(tMemo) tMemo.blur();
+  openPage("dashboard");
 }
 
 async function saveStudy(){
-  const linePrice=toNum(qs("s_linePrice").value); if(linePrice==null){ alert("ライン価格を入力してください"); return; }
+  const linePrice=toNum(qs("s_linePrice").value);
+  if(linePrice==null){ alert("ライン価格を入力してください"); return; }
+
   const imageId=await persistPendingImage("study", pendingStudyImage);
   const study={
     id:Date.now(),
     num:studies.length+1,
     date:qs("s_date").value,
     symbol:qs("s_symbol").value,
-    marketStructure:qs("s_marketStructure").value,
-    contextTf:qs("s_contextTf").value,
+    marketStructure:qs("s_marketStructure") ? qs("s_marketStructure").value : "up",
+    contextTf:qs("s_contextTf") ? qs("s_contextTf").value : "H4",
     linePrice,
     lineType:qs("s_lineType").value,
     lineType2:qs("s_lineType2").value,
@@ -1312,12 +1280,29 @@ async function saveStudy(){
     memo:qs("s_memo").value.trim(),
     imageId
   };
-  studies.push(study); saveStorage(); clearStudyForm(); await refreshImageCache(true); renderAll(); openPage("dashboard");
+
+  studies.push(study);
+  saveStorage();
+  clearStudyForm();
+  await refreshImageCache(true);
+  renderAll();
+
+  const memo = qs("s_memo");
+  if(memo) memo.blur();
+
+  openPage("dashboard");
 }
 
 function clearTradeForm(){
   qs("t_date").value=todayStr(); applyTradeDraft(); qs("t_zonePrice").value=""; qs("t_entryPrice").value=""; qs("t_slPrice").value="";
   qs("t_tpPrice").value=""; qs("t_spread").value=""; qs("t_memo").value=""; clearAttachedImage("t"); updateTradeCalcPreview();
+}
+function insertStudyTemplate(force=false){
+  const memo=qs("s_memo");
+  if(!memo) return;
+  const current=(memo.value||"").trim();
+  if(!force && current && current!==STUDY_MEMO_TEMPLATE.trim()) return;
+  memo.value=STUDY_MEMO_TEMPLATE;
 }
 function clearStudyForm(){
   qs("s_date").value=todayStr();
@@ -1329,7 +1314,9 @@ function clearStudyForm(){
   qs("s_zoneTo").value="";
   clearAttachedImage("s");
   insertStudyTemplate(true);
-  const wrap=qs("studyOptionalWrap"); if(wrap) wrap.classList.add("open");
+
+  const wrap=qs("studyOptionalWrap");
+  if(wrap) wrap.classList.add("open");
   if(qs("studyStepper")) setStep("study",2,1);
 }
 
@@ -1384,14 +1371,14 @@ async function buildBackupPayload(includeImages){
 async function exportJSON(includeImages=true){
   const data=await buildBackupPayload(includeImages);
   const suffix=includeImages?"images":"lite";
-  downloadFile(`sen-fx-backup-v10.5.1-${suffix}.json`, JSON.stringify(data,null,2), "application/json");
+  downloadFile(`sen-fx-backup-v10.6.3-${suffix}.json`, JSON.stringify(data,null,2), "application/json");
 }
 function exportCSV(){
   const headers=["type","num","date","symbol","time","direction","trend","entryType","lineType","lineType2","lineType3","entryPrice","slPrice","tpPrice","slPips","tpPips","result","rMultiple","pnl","strength","wicks","marketStructure","contextTf","memo"];
-  const tradeRows=trades.map(t=>["trade",t.num,t.date,t.symbol||"",t.time||"",t.direction||"",t.trend||"",t.entryType||"",t.lineType||"","","",t.entryPrice??"",t.slPrice??"",t.tpPrice??"",t.slPips??"",t.tpPips??"",t.result||"",t.rMultiple??"",t.pnl??"","","","",(t.memo||"").replace(/\n/g," ")]);
+  const tradeRows=trades.map(t=>["trade",t.num,t.date,t.symbol||"",t.time||"",t.direction||"",t.trend||"",t.entryType||"",t.lineType||"","","",t.entryPrice??"",t.slPrice??"",t.tpPrice??"",t.slPips??"",t.tpPips??"",t.result||"",t.rMultiple??"",t.pnl??"","","","","",(t.memo||"").replace(/\n/g," ")]);
   const studyRows=studies.map(s=>["study",s.num,s.date,s.symbol||"","","","","",s.lineType||"",s.lineType2||"",s.lineType3||"","","","","","",s.result||"","","",s.strength||"",s.wicks?"true":"false",s.marketStructure||"",s.contextTf||"",(s.memo||"").replace(/\n/g," ")]);
   const csv=[headers.join(","), ...tradeRows.concat(studyRows).map(r=>r.map(csvEscape).join(","))].join("\n");
-  downloadFile("sen-fx-complete-v10.5.1.csv", csv, "text/csv;charset=utf-8;");
+  downloadFile("sen-fx-complete-v10.6.3.csv", csv, "text/csv;charset=utf-8;");
 }
 function csvEscape(v){ const s=String(v??""); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
 function downloadFile(name, content, type){
@@ -1643,6 +1630,7 @@ function bindFormToggles(){
 }
 function bindTabs(){ document.querySelectorAll(".tab-btn").forEach(btn=>btn.addEventListener("click",()=>openPage(btn.dataset.page))); }
 function openPage(pageId){
+  closeMemoExpand();
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   qs("page-"+pageId).classList.add("active");
   document.querySelectorAll(".tab-btn").forEach(btn=>{ btn.classList.remove("active","study-active"); if(btn.dataset.page===pageId){ btn.classList.add("active"); if(pageId==="study") btn.classList.add("study-active"); }});
@@ -1666,56 +1654,97 @@ function bindFixedActionBars(){
   }
 }
 
-
 function openImageModal(src,title="画像プレビュー"){
-  const modal=qs("imageModal"),img=qs("imageModalImg"),titleEl=qs("imageModalTitle");
+  const modal=qs("imageModal"), img=qs("imageModalImg"), titleEl=qs("imageModalTitle");
   if(!modal||!img||!titleEl||!src) return;
-  img.src=src; titleEl.textContent=title;
-  modal.classList.add("show"); modal.setAttribute("aria-hidden","false");
+  img.src=src;
+  titleEl.textContent=title;
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden","false");
 }
 function closeImageModal(){
-  const modal=qs("imageModal"),img=qs("imageModalImg"); if(!modal||!img) return;
-  modal.classList.remove("show"); modal.setAttribute("aria-hidden","true");
+  const modal=qs("imageModal"), img=qs("imageModalImg");
+  if(!modal||!img) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden","true");
   setTimeout(()=>img.removeAttribute("src"),120);
 }
 function bindImageZoom(){
   document.addEventListener("click",(e)=>{
     const target=e.target.closest("img[data-zoomable='true']");
     if(!target) return;
-    openImageModal(target.getAttribute("src"), target.dataset.zoomTitle||"画像プレビュー");
+    openImageModal(target.getAttribute("src"), target.dataset.zoomTitle || "画像プレビュー");
   });
-  const closeBtn=qs("imageModalCloseBtn"),modal=qs("imageModal");
+  const closeBtn=qs("imageModalCloseBtn"), modal=qs("imageModal");
   if(closeBtn) closeBtn.addEventListener("click",closeImageModal);
   if(modal) modal.addEventListener("click",(e)=>{ if(e.target===modal) closeImageModal(); });
   document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeImageModal(); });
 }
 
-function bindMemoExpand(){
-  const overlay=qs("memoOverlay"),closeBtn=qs("memoCloseBtn");
-  let activeMemo=null;
-  function openMemo(memo){
-    if(!memo || activeMemo===memo) return;
-    activeMemo=memo;
-    memo.classList.add("memo-expanded");
-    if(closeBtn) closeBtn.style.display="block";
-    if(overlay) overlay.style.display="block";
-    document.body.style.overflow="hidden";
-  }
-  function closeMemo(){
-    if(activeMemo){ activeMemo.classList.remove("memo-expanded"); activeMemo.blur(); }
-    activeMemo=null;
-    if(closeBtn) closeBtn.style.display="none";
-    if(overlay) overlay.style.display="none";
-    document.body.style.overflow="";
-  }
+
+function closeMemoExpand(){
+  const overlay = qs("memoOverlay");
+  const closeBtn = qs("memoCloseBtn");
   ["t_memo","s_memo"].forEach(id=>{
-    const memo=qs(id);
-    if(!memo) return;
-    memo.addEventListener("focus",()=>openMemo(memo));
+    const memo = qs(id);
+    if(memo) memo.classList.remove("memo-expanded");
   });
-  if(closeBtn) closeBtn.addEventListener("click",closeMemo);
-  if(overlay) overlay.addEventListener("click",closeMemo);
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"&&activeMemo) closeMemo(); });
+  if(closeBtn) closeBtn.style.display = "none";
+  if(overlay) overlay.style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function bindMemoExpand(){
+  const overlay = qs("memoOverlay");
+  const closeBtn = qs("memoCloseBtn");
+  let activeMemo = null;
+
+  function openMemo(memo){
+    if(!memo || activeMemo === memo) return;
+    activeMemo = memo;
+    memo.classList.add("memo-expanded");
+    if(closeBtn) closeBtn.style.display = "block";
+    if(overlay) overlay.style.display = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeMemo(){
+    if(activeMemo){
+      activeMemo.classList.remove("memo-expanded");
+      activeMemo.blur();
+    }
+    activeMemo = null;
+    if(closeBtn) closeBtn.style.display = "none";
+    if(overlay) overlay.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  ["t_memo","s_memo"].forEach(id=>{
+    const memo = qs(id);
+    if(!memo) return;
+    memo.addEventListener("focus", ()=>openMemo(memo));
+  });
+
+  if(closeBtn) closeBtn.addEventListener("click", closeMemo);
+  if(overlay) overlay.addEventListener("click", closeMemo);
+
+  document.addEventListener("click",(e)=>{
+    if(!activeMemo) return;
+    const isMemo = e.target.closest(".memo-expanded");
+    const isBtn = e.target.closest("#memoCloseBtn");
+    const isOverlay = e.target.closest("#memoOverlay");
+    if(isOverlay){
+      closeMemo();
+      return;
+    }
+    if(!isMemo && !isBtn){
+      closeMemo();
+    }
+  });
+
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape") closeMemo();
+  });
 }
 
 function bindInputs(){
@@ -1733,9 +1762,6 @@ function bindInputs(){
   if(qs("t_image")) qs("t_image").addEventListener("change",e=>handleImageInput("t", e.target.files[0]));
   if(qs("s_image")) qs("s_image").addEventListener("change",e=>handleImageInput("s", e.target.files[0]));
   if(qs("s_insertTemplateBtn")) qs("s_insertTemplateBtn").addEventListener("click",()=>insertStudyTemplate(true));
-  if(qs("t_imageClearBtn")) qs("t_imageClearBtn").addEventListener("click",()=>clearAttachedImage("t"));
-  if(qs("s_imageClearBtn")) qs("s_imageClearBtn").addEventListener("click",()=>clearAttachedImage("s"));
-
   if(qs("s_memo")){
     qs("s_memo").addEventListener("input", protectStudyTemplate);
     qs("s_memo").addEventListener("keydown",(e)=>{
@@ -1746,16 +1772,21 @@ function bindInputs(){
       if(start==null || end==null) return;
       const protectedLength=template.length;
       const isDelete=(e.key==="Backspace" || e.key==="Delete");
-      const isCut=(e.key.toLowerCase()==="x" && (e.ctrlKey || e.metaKey));
+      const isCut=((e.key||"").toLowerCase()==="x" && (e.ctrlKey || e.metaKey));
       if((isDelete || isCut) && (start < protectedLength || end < protectedLength)){
         e.preventDefault();
       }
     });
     qs("s_memo").addEventListener("paste",(e)=>{
       const memo=e.target, template=getStudyTemplate(), start=memo.selectionStart;
-      if(start != null && start < template.length) e.preventDefault();
+      if(start != null && start < template.length){
+        e.preventDefault();
+      }
     });
   }
+  if(qs("t_imageClearBtn")) qs("t_imageClearBtn").addEventListener("click",()=>clearAttachedImage("t"));
+  if(qs("s_imageClearBtn")) qs("s_imageClearBtn").addEventListener("click",()=>clearAttachedImage("s"));
+  ["s_marketStructure","s_contextTf"].forEach(id=>{ if(qs(id)) qs(id).addEventListener("change",e=>{ studyState[id==="s_marketStructure"?"marketStructure":"contextTf"] = e.target.value; }); });
 
   qs("exportJsonBtn").addEventListener("click",()=>exportJSON(true));
   qs("exportJsonLiteBtn").addEventListener("click",()=>exportJSON(false));
@@ -1782,9 +1813,20 @@ function bindInputs(){
 }
 
 async function init(){
-  setDefaults(); applySettingsToUI(); bindTabs(); bindHistoryToggle(); bindAccordions(); bindInputs(); bindFormToggles(); bindFixedActionBars(); bindImageZoom(); bindMemoExpand();
+  setDefaults();
+  applySettingsToUI();
+  bindTabs();
+  bindHistoryToggle();
+  bindAccordions();
+  bindInputs();
+  bindFormToggles();
+  bindFixedActionBars();
+  bindImageZoom();
+  bindMemoExpand();
+
   insertStudyTemplate(true);
   protectStudyTemplate();
+
   bindSeg("seg_t_time",tradeState,"time");
   bindSeg("seg_t_direction",tradeState,"direction");
   bindSeg("seg_t_trend",tradeState,"trend");
@@ -1794,25 +1836,17 @@ async function init(){
   bindSeg("seg_s_strength",studyState,"strength");
   bindSeg("seg_s_wicks",studyState,"wicks","bool");
   bindSeg("seg_s_result",studyState,"result");
+
   await migrateLegacyImages();
   await refreshImageCache(true);
-  renderAll(); updateTradeCalcPreview();
+  renderAll();
+  updateTradeCalcPreview();
 }
 init().catch(err=>{
   console.error(err);
   alert("初期化中に一部エラーが出ました。画像機能が不安定な場合は再読み込みしてください。");
 });
 </script>
-
-<div class="image-modal-backdrop" id="imageModal" aria-hidden="true">
-  <div class="image-modal-card">
-    <div class="image-modal-head">
-      <div class="image-modal-title" id="imageModalTitle">画像プレビュー</div>
-      <button class="image-modal-close" id="imageModalCloseBtn" type="button">閉じる</button>
-    </div>
-    <img class="image-modal-img" id="imageModalImg" alt="expanded preview" />
-  </div>
-</div>
 
 <div id="memoOverlay" class="memo-expand-overlay"></div>
 <button id="memoCloseBtn" class="memo-close-btn" type="button">✕ 閉じる</button>
